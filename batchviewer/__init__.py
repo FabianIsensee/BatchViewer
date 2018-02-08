@@ -1,1 +1,3 @@
-from BatchViewer import view_batch
+
+from .batchviewer import *
+from .batchviewer import view_batch

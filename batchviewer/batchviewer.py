@@ -133,8 +133,8 @@ class BatchViewer(QtGui.QWidget):
 
     def wheelEvent(self, QWheelEvent):
         for v in self.slicingWidgets.values():
-            offset=np.sign(QWheelEvent.delta())
-            v.setSlice(v.getSlice() + offset)
+            offset=np.sign(QWheelEvent.angleDelta().y())
+            v.setSlice(v.getSlice() + np.sign(offset))
 
 def view_batch(batch, width=300, height=300, lut={}):
     global app
