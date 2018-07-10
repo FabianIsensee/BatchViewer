@@ -136,13 +136,21 @@ class BatchViewer(QtGui.QWidget):
             offset=np.sign(QWheelEvent.angleDelta().y())
             v.setSlice(v.getSlice() + np.sign(offset))
 
-def view_batch(batch, width=300, height=300, lut={}):
+def view_batch(*args, width=300, height=300, lut={}):
+    use_these = args
+    if not isinstance(use_these, (np.ndarray, np.memmap)):
+        use_these = list(use_these)
+        for i in range(len(use_these)):
+            while len(use_these[i].shape) < 4:
+                use_these[i] = use_these[i][None]
+        use_these = np.concatenate(use_these, 0)
+
     global app
     app = QtGui.QApplication.instance()
     if app is None:
         app = QtGui.QApplication(sys.argv)
     sv = BatchViewer(width=width, height=height)
-    sv.setBatch(batch, lut)
+    sv.setBatch(use_these, lut)
     sv.show()
     app.exit(app.exec_())
 
