@@ -144,6 +144,9 @@ def view_batch(*args, width=300, height=300, lut={}):
             while len(use_these[i].shape) < 4:
                 use_these[i] = use_these[i][None]
         use_these = np.concatenate(use_these, 0)
+    else:
+        while len(use_these.shape) < 4:
+            use_these = use_these[None]
 
     global app
     app = QtGui.QApplication.instance()
