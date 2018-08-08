@@ -68,10 +68,6 @@ class ImageSlicingWidget(ImageViewer2DWidget):
         if len(image.shape) == 4:
             assert image.shape[-1] == 4
         self.image3D = np.array(image)
-        mn = np.min(image)
-        mx = np.max(image)
-        self.image3D[:, 0, 0] = mn
-        self.image3D[:, 0, 1] = mx
         self._updateImageSlice()
 
     def _updateImageSlice(self):
@@ -100,6 +96,7 @@ class BatchViewer(QtGui.QWidget):
 
     def setBatch(self, batch, lut={}):
         assert len(batch.shape) == 4
+        batch = np.copy(batch)
         for v in self.slicingWidgets.values():
             self._my_layout.removeWidget(v)
         self.slicingWidgets = {}
@@ -107,10 +104,16 @@ class BatchViewer(QtGui.QWidget):
         if not isinstance(lut, dict):
             lut = {i: lut for i in range(self.batch.shape[0])}
 
+        for b in range(batch.shape[0]):
+            mn = batch[b].min()
+            mx = batch[b].max()
+            batch[b, :, 0, 0] = mn
+            batch[b, :, 0, 1] = mx
+
         self.batch = batch
         num_col = int(np.ceil(np.sqrt(batch.shape[0])))
-        col=0
-        row=0
+        col = 0
+        row = 0
         for i in range(self.batch.shape[0]):
             w = ImageSlicingWidget(self.width, self.height)
             if lut is not None and i in lut.keys():
