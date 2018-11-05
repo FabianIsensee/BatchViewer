@@ -144,8 +144,16 @@ def view_batch(*args, width=300, height=300, lut={}):
     if not isinstance(use_these, (np.ndarray, np.memmap)):
         use_these = list(use_these)
         for i in range(len(use_these)):
-            while len(use_these[i].shape) < 4:
-                use_these[i] = use_these[i][None]
+            item = use_these[i]
+            try:
+                import torch
+                if isinstance(item, torch.Tensor):
+                    item = item.detach().cpu().numpy()
+            except ImportError:
+                pass
+            while len(item.shape) < 4:
+                item = item[None]
+            use_these[i] = item
         use_these = np.concatenate(use_these, 0)
     else:
         while len(use_these.shape) < 4:
