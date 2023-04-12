@@ -7,4 +7,8 @@ setup(name='batchviewer',
       author='Fabian Isensee',
       author_email='isenseef@gmail.com',
       packages=['batchviewer'],
-      zip_safe=False)
+      zip_safe=False,
+      install_requires=[
+            'pyqtgraph',
+            'pyqt5'
+      ])

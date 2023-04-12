@@ -11,21 +11,23 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-
-from pyqtgraph.Qt import QtGui, QtCore
+from PyQt5.QtCore import QRect
+from PyQt5.QtGui import QPainter
+from PyQt5.QtWidgets import QWidget, QHBoxLayout, QGridLayout, QApplication
 import pyqtgraph as pg
 import sys
 import numpy as np
 
-class ImageViewer2DWidget(QtGui.QWidget):
+
+class ImageViewer2DWidget(QWidget):
     def __init__(self, width=300, height=300):
-        QtGui.QWidget.__init__(self)
+        super().__init__()
         self.image = None
-        self.lut=None
+        self.lut = None
         self.init(width, height)
 
     def init(self, width, height):
-        self.rect = QtCore.QRect(0, 0, width, height)
+        self.rect = QRect(0, 0, width, height)
         self.imageItem = pg.ImageItem()
         self.imageItem.setImage(None)
 
@@ -33,14 +35,14 @@ class ImageViewer2DWidget(QtGui.QWidget):
         self.graphicsScene.addItem(self.imageItem)
 
         self.graphicsView = pg.GraphicsView()
-        self.graphicsView.setRenderHint(QtGui.QPainter.Antialiasing)
+        self.graphicsView.setRenderHint(QPainter.Antialiasing)
         self.graphicsView.setScene(self.graphicsScene)
 
-        layout = QtGui.QHBoxLayout()
+        layout = QHBoxLayout()
         layout.addWidget(self.graphicsView)
         self.setLayout(layout)
         self.setMaximumSize(width, height)
-        self.setMinimumSize(width-10, height-10)
+        self.setMinimumSize(width - 10, height - 10)
 
     def setImage(self, image):
         assert len(image.shape) == 2 or len(image.shape) == 3
@@ -58,10 +60,11 @@ class ImageViewer2DWidget(QtGui.QWidget):
     def setLUT(self, lut):
         self.lut = lut
 
+
 class ImageSlicingWidget(ImageViewer2DWidget):
     def __init__(self, width=300, height=300):
         self.slice = 0
-        ImageViewer2DWidget.__init__(self, width, height)
+        super().__init__(width, height)
 
     def setImage(self, image):
         assert len(image.shape) == 3 or len(image.shape) == 4
@@ -85,9 +88,10 @@ class ImageSlicingWidget(ImageViewer2DWidget):
     def getSlice(self):
         return self.slice
 
-class BatchViewer(QtGui.QWidget):
+
+class BatchViewer(QWidget):
     def __init__(self, parent=None, width=300, height=300):
-        QtGui.QWidget.__init__(self, parent)
+        super().__init__(parent)
         self.batch = None
         self.width = width
         self.height = height
@@ -129,15 +133,16 @@ class BatchViewer(QtGui.QWidget):
             self.slicingWidgets[i] = w
 
     def _init_gui(self):
-        self._my_layout = QtGui.QGridLayout()
+        self._my_layout = QGridLayout()
         self.slicingWidgets = {}
         self.setLayout(self._my_layout)
         self.setWindowTitle("Batch Viewer")
 
     def wheelEvent(self, QWheelEvent):
         for v in self.slicingWidgets.values():
-            offset=np.sign(QWheelEvent.angleDelta().y())
+            offset = np.sign(QWheelEvent.angleDelta().y())
             v.setSlice(v.getSlice() + np.sign(offset))
+
 
 def view_batch(*args, width=300, height=300, lut={}):
     use_these = args
@@ -160,23 +165,25 @@ def view_batch(*args, width=300, height=300, lut={}):
             use_these = use_these[None]
 
     global app
-    app = QtGui.QApplication.instance()
+    app = QApplication.instance()
     if app is None:
-        app = QtGui.QApplication(sys.argv)
+        app = QApplication(sys.argv)
     sv = BatchViewer(width=width, height=height)
     sv.setBatch(use_these, lut)
     sv.show()
     app.exit(app.exec_())
 
+
 if __name__ == '__main__':
     import matplotlib.pyplot as plt
+
     global app
-    app = QtGui.QApplication.instance()
+    app = QApplication.instance()
     if app is None:
-        app = QtGui.QApplication(sys.argv)
+        app = QApplication(sys.argv)
     sv = BatchViewer()
     batch = np.random.uniform(0, 3, (6, 100, 100, 100)).astype(int)
-    lut = {2: np.array([[0, 0.5, 0, 1], [0, 0, 0.5, 1], [0.5, 0, 0, 1], [0.5, 0.5, 0, 1]])*255,
+    lut = {2: np.array([[0, 0.5, 0, 1], [0, 0, 0.5, 1], [0.5, 0, 0, 1], [0.5, 0.5, 0, 1]]) * 255,
            1: np.array([[1, 0.5, 0, 1], [0, 0, 0.5, 1], [0.5, 0, 0, 1], [0.5, 0.5, 0, 1]]) * 255}
     sv.setBatch(batch, lut)
     sv.show()
