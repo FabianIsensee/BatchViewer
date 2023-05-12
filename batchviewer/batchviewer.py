@@ -111,11 +111,17 @@ class BatchViewer(QWidget):
         for b in range(batch.shape[0]):
             mn = batch[b].min()
             mx = batch[b].max()
-            batch[b, :, 0, 0] = mn
-            batch[b, :, 0, 1] = mx
+            if batch.dtype in (int, np.uint8, np.uint16, np.uint32, np.uint64, np.int8, np.int16, np.int32, np.int64):
+                vals = np.linspace(mn, mx, num=mx - mn + 1, dtype=batch.dtype)
+            else:
+                vals = np.linspace(mn, mx, num=255, dtype=batch.dtype)
+            max_allowed = np.prod(batch[b].shape, dtype=np.int64) // 10
+            vals = vals[:min(max_allowed, len(vals))]
+            for slice in range(batch[b].shape[0]):
+                batch[b, slice].ravel()[:len(vals)] = vals
 
         self.batch = batch
-        num_col = int(np.ceil(np.sqrt(batch.shape[0])))
+        num_col = int(np.ceil(np.sqrt(self.batch.shape[0])))
         col = 0
         row = 0
         for i in range(self.batch.shape[0]):
@@ -123,8 +129,8 @@ class BatchViewer(QWidget):
             if lut is not None and i in lut.keys():
                 w.setLUT(lut[i])
             w.setImage(self.batch[i])
-            w.setLevels([self.batch[i].min(), self.batch[i].max()])
-            w.setSlice(0)
+            # w.setLevels([self.batch[i].min(), self.batch[i].max()])
+            w.setSlice(self.batch.shape[1] // 2)
             self._my_layout.addWidget(w, row, col)
             col += 1
             if col >= num_col:
@@ -144,7 +150,7 @@ class BatchViewer(QWidget):
             v.setSlice(v.getSlice() + np.sign(offset))
 
 
-def view_batch(*args, width=300, height=300, lut={}):
+def view_batch(*args, width=500, height=500, lut={}):
     use_these = args
     if not isinstance(use_these, (np.ndarray, np.memmap)):
         use_these = list(use_these)
